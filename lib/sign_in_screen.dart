@@ -74,9 +74,9 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _onSinIn() {
-    if (_formKey.currentState?.validate() != true) {
-      return;
-    }
+    // if (_formKey.currentState?.validate() != true) {
+    //   return;
+    // }
 
     Navigator.of(context).pushReplacement(MaterialPageRoute(
       builder: (_) => PhotoListScreen(),

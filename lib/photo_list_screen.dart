@@ -30,9 +30,9 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       body: PageView(
         controller: _controller,
         onPageChanged: (int index) => {_onPageChanged(index)},
-        children: const [
+        children: [
           Center(
-            child: Text('ページ：フォト'),
+            child: PhotoGridView(),
           ),
           Center(
             child: Text('ページ：お気に入り'),
@@ -69,5 +69,52 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     setState(() {
       _currentIndex = index;
     });
+  }
+}
+
+class PhotoGridView extends StatelessWidget {
+  PhotoGridView({Key? key}) : super(key: key);
+
+  final List<String> imageList = [
+    'https://placehold.jp/400x300.png?text=0',
+    'https://placehold.jp/400x300.png?text=1',
+    'https://placehold.jp/400x300.png?text=2',
+    'https://placehold.jp/400x300.png?text=3',
+    'https://placehold.jp/400x300.png?text=4',
+    'https://placehold.jp/400x300.png?text=5',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      padding: const EdgeInsets.all(8),
+      children: imageList.map((imageUrl) {
+        return Stack(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: InkWell(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                onPressed: () => {},
+                color: Colors.white,
+                icon: const Icon(Icons.favorite_border),
+              ),
+            )
+          ],
+        );
+      }).toList(),
+    );
   }
 }
