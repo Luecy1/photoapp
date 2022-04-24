@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photoapp/PhotoViewScreen.dart';
 
 class PhotoListScreen extends StatefulWidget {
   const PhotoListScreen({Key? key}) : super(key: key);
@@ -32,7 +33,11 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         onPageChanged: (int index) => {_onPageChanged(index)},
         children: [
           Center(
-            child: PhotoGridView(),
+            child: PhotoGridView(
+              onTap: ((imageUrl) {
+                _onTapPhoto(imageUrl);
+              }),
+            ),
           ),
           Center(
             child: Text('ページ：お気に入り'),
@@ -70,10 +75,21 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       _currentIndex = index;
     });
   }
+
+  void _onTapPhoto(String imageUrl) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+      return PhotoViewScreen(imageUrl: imageUrl);
+    }));
+  }
 }
 
 class PhotoGridView extends StatelessWidget {
-  PhotoGridView({Key? key}) : super(key: key);
+  PhotoGridView({
+    Key? key,
+    required this.onTap,
+  }) : super(key: key);
+
+  final void Function(String imageUrl) onTap;
 
   final List<String> imageList = [
     'https://placehold.jp/400x300.png?text=0',
@@ -98,6 +114,7 @@ class PhotoGridView extends StatelessWidget {
               width: double.infinity,
               height: double.infinity,
               child: InkWell(
+                onTap: () => onTap(imageUrl),
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
