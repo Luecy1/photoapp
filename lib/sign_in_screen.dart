@@ -79,14 +79,32 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  void _onSinIn() {
-    // if (_formKey.currentState?.validate() != true) {
-    //   return;
-    // }
+  Future<void> _onSinIn() async {
+    try {
+      if (_formKey.currentState?.validate() != true) {
+        return;
+      }
 
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (_) => PhotoListScreen(),
-    ));
+      final email = _emailController.text;
+      final password = _passwordController.text;
+
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => PhotoListScreen(),
+      ));
+    } catch (e) {
+      print(e);
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('エラー'),
+              content: Text(e.toString()),
+            );
+          });
+    }
   }
 
   Future<void> _onSinUp() async {
