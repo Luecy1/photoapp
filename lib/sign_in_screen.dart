@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:photoapp/photo_list_screen.dart';
 
@@ -10,6 +11,9 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _emailController,
                   decoration: const InputDecoration(labelText: 'メールアドレス'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (String? value) {
@@ -39,6 +44,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  controller: _passwordController,
                   decoration: const InputDecoration(labelText: 'パスワード'),
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
@@ -83,9 +89,30 @@ class _SignInScreenState extends State<SignInScreen> {
     ));
   }
 
-  void _onSinUp() {
-    if (_formKey.currentState?.validate() != true) {
-      return;
+  Future<void> _onSinUp() async {
+    try {
+      if (_formKey.currentState?.validate() != true) {
+        return;
+      }
+
+      final email = _emailController.text;
+      final password = _passwordController.text;
+
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => PhotoListScreen(),
+      ));
+    } catch (e) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('エラー'),
+              content: Text(e.toString()),
+            );
+          });
     }
   }
 }
