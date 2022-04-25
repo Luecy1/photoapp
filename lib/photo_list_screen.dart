@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:photoapp/photo_view_screen.dart';
 import 'package:photoapp/sign_in_screen.dart';
@@ -49,7 +53,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => {},
+        onPressed: () => _onAddPhoto(),
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -90,6 +94,28 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context)
         .pushReplacement(MaterialPageRoute(builder: (_) => SignInScreen()));
+  }
+
+  Future<void> _onAddPhoto() async {
+    // 画像ファイルを選択
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+
+    if (result != null) {
+      final user = FirebaseAuth.instance.currentUser!;
+
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      final file = File(result.files.single.path!);
+      final name = file.path.split('/').last;
+      final path = '${timestamp}_$name';
+
+      final task = await FirebaseStorage.instance
+          .ref()
+          .child('users/${user.uid}/photos')
+          .child(path)
+          .putFile(file);
+
+      print(task);
+    }
   }
 }
 
