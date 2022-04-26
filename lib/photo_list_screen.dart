@@ -28,6 +28,8 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo App'),
@@ -37,22 +39,39 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
               icon: const Icon(Icons.exit_to_app)),
         ],
       ),
-      body: PageView(
-        controller: _controller,
-        onPageChanged: (int index) => {_onPageChanged(index)},
-        children: [
-          Center(
-            child: PhotoGridView(
-              onTap: ((imageUrl) {
-                _onTapPhoto(imageUrl);
-              }),
-            ),
-          ),
-          Center(
-            child: Text('ページ：お気に入り'),
-          ),
-        ],
-      ),
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users/${user.uid}/photos')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData == false) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            final QuerySnapshot query = snapshot.data!;
+
+            final List<String> imageList =
+                query.docs.map((doc) => doc.get('imageURL') as String).toList();
+
+            return PageView(
+              controller: _controller,
+              onPageChanged: (int index) => _onPageChanged(index),
+              children: [
+                Center(
+                  child: PhotoGridView(
+                    imageList: imageList,
+                    onTap: (imageUrl) => _onTapPhoto(imageUrl),
+                  ),
+                ),
+                const Center(
+                  child: Text('ページ：お気に入り'),
+                ),
+              ],
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _onAddPhoto(),
         child: const Icon(Icons.add),
@@ -102,6 +121,9 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('アップロード中')));
+
       final user = FirebaseAuth.instance.currentUser!;
 
       final timestamp = DateTime.now().microsecondsSinceEpoch;
@@ -129,26 +151,22 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           .collection('users/${user.uid}/photos')
           .doc()
           .set(data);
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('アップロード完了')));
     }
   }
 }
 
 class PhotoGridView extends StatelessWidget {
-  PhotoGridView({
+  const PhotoGridView({
     Key? key,
+    required this.imageList,
     required this.onTap,
   }) : super(key: key);
 
+  final List<String> imageList;
   final void Function(String imageUrl) onTap;
-
-  final List<String> imageList = [
-    'https://placehold.jp/400x300.png?text=0',
-    'https://placehold.jp/400x300.png?text=1',
-    'https://placehold.jp/400x300.png?text=2',
-    'https://placehold.jp/400x300.png?text=3',
-    'https://placehold.jp/400x300.png?text=4',
-    'https://placehold.jp/400x300.png?text=5',
-  ];
 
   @override
   Widget build(BuildContext context) {
