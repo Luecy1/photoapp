@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -114,7 +115,20 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           .child(path)
           .putFile(file);
 
-      print(task);
+      final imageUrl = await task.ref.getDownloadURL();
+      final imagePath = task.ref.fullPath;
+
+      final data = {
+        'imageURL': imageUrl,
+        'imagePath': imagePath,
+        'isFavorite': false,
+        'createdAt': Timestamp.now(),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users/${user.uid}/photos')
+          .doc()
+          .set(data);
     }
   }
 }
