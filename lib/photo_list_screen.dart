@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:photoapp/photo.dart';
+import 'package:photoapp/photo_repository.dart';
 import 'package:photoapp/photo_view_screen.dart';
 import 'package:photoapp/sign_in_screen.dart';
 
@@ -39,11 +41,8 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
               icon: const Icon(Icons.exit_to_app)),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users/${user.uid}/photos')
-              .orderBy('createdAt', descending: true)
-              .snapshots(),
+      body: StreamBuilder<List<Photo>>(
+          stream: PhotoRepository(user).getPhotoList(),
           builder: (context, snapshot) {
             if (snapshot.hasData == false) {
               return const Center(
@@ -51,10 +50,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
               );
             }
 
-            final QuerySnapshot query = snapshot.data!;
-
-            final List<String> imageList =
-                query.docs.map((doc) => doc.get('imageURL') as String).toList();
+            final photoList = snapshot.data!;
 
             return PageView(
               controller: _controller,
@@ -62,12 +58,12 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
               children: [
                 Center(
                   child: PhotoGridView(
-                    imageList: imageList,
-                    onTap: (imageUrl) => _onTapPhoto(imageUrl),
+                    photoList: photoList,
+                    onTap: (photo) => _onTapPhoto(photo, photoList),
                   ),
                 ),
                 const Center(
-                  child: Text('ページ：お気に入り'),
+                  child: Text('ページ：お気に入り'), // todo
                 ),
               ],
             );
@@ -104,10 +100,13 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     });
   }
 
-  void _onTapPhoto(String imageUrl) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-      return PhotoViewScreen(imageUrl: imageUrl);
-    }));
+  void _onTapPhoto(Photo photo, List<Photo> photoList) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => PhotoViewScreen(
+        photo: photo,
+        photoList: photoList,
+      ),
+    ));
   }
 
   Future<void> _onSignOut() async {
@@ -161,12 +160,12 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
 class PhotoGridView extends StatelessWidget {
   const PhotoGridView({
     Key? key,
-    required this.imageList,
+    required this.photoList,
     required this.onTap,
   }) : super(key: key);
 
-  final List<String> imageList;
-  final void Function(String imageUrl) onTap;
+  final List<Photo> photoList;
+  final void Function(Photo photo) onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -175,16 +174,16 @@ class PhotoGridView extends StatelessWidget {
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       padding: const EdgeInsets.all(8),
-      children: imageList.map((imageUrl) {
+      children: photoList.map((photo) {
         return Stack(
           children: [
             SizedBox(
               width: double.infinity,
               height: double.infinity,
               child: InkWell(
-                onTap: () => onTap(imageUrl),
+                onTap: () => onTap(photo),
                 child: Image.network(
-                  imageUrl,
+                  photo.imageURL,
                   fit: BoxFit.cover,
                 ),
               ),

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:photoapp/photo.dart';
 
 class PhotoViewScreen extends StatefulWidget {
+  final Photo photo;
+  final List<Photo> photoList;
+
   const PhotoViewScreen({
     Key? key,
-    required this.imageUrl,
+    required this.photo,
+    required this.photoList,
   }) : super(key: key);
-
-  final String imageUrl;
 
   @override
   State<PhotoViewScreen> createState() => _PhotoViewScreenState();
@@ -15,21 +18,11 @@ class PhotoViewScreen extends StatefulWidget {
 class _PhotoViewScreenState extends State<PhotoViewScreen> {
   late PageController _controller;
 
-  // ダミー画像一覧
-  final List<String> imageList = [
-    'https://placehold.jp/400x300.png?text=0',
-    'https://placehold.jp/400x300.png?text=1',
-    'https://placehold.jp/400x300.png?text=2',
-    'https://placehold.jp/400x300.png?text=3',
-    'https://placehold.jp/400x300.png?text=4',
-    'https://placehold.jp/400x300.png?text=5',
-  ];
-
   @override
   void initState() {
     super.initState();
 
-    final initialPage = imageList.indexOf(widget.imageUrl);
+    final initialPage = widget.photoList.indexOf(widget.photo);
     _controller = PageController(
       initialPage: initialPage,
     );
@@ -45,9 +38,9 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
           PageView(
             controller: _controller,
             onPageChanged: (index) => {},
-            children: imageList.map((imageUrl) {
+            children: widget.photoList.map((photo) {
               return Image.network(
-                imageUrl,
+                photo.imageURL,
                 fit: BoxFit.cover,
               );
             }).toList(),
