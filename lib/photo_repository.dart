@@ -19,7 +19,6 @@ class PhotoRepository {
   }
 
   Future<void> addPhoto(File file) async {
-    // todo repositoryを使うように
     final user = FirebaseAuth.instance.currentUser!;
     final int timestamp = DateTime.now().microsecondsSinceEpoch;
     final name = file.path.split('/').last;

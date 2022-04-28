@@ -1,9 +1,7 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:photoapp/photo.dart';
 import 'package:photoapp/photo_repository.dart';
@@ -124,33 +122,9 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           .showSnackBar(const SnackBar(content: Text('アップロード中')));
 
       final user = FirebaseAuth.instance.currentUser!;
-
-      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      final repository = PhotoRepository(user);
       final file = File(result.files.single.path!);
-      final name = file.path.split('/').last;
-      final path = '${timestamp}_$name';
-
-      final task = await FirebaseStorage.instance
-          .ref()
-          .child('users/${user.uid}/photos')
-          .child(path)
-          .putFile(file);
-
-      final imageUrl = await task.ref.getDownloadURL();
-      final imagePath = task.ref.fullPath;
-
-      final data = {
-        'imageURL': imageUrl,
-        'imagePath': imagePath,
-        'isFavorite': false,
-        'createdAt': Timestamp.now(),
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users/${user.uid}/photos')
-          .doc()
-          .set(data);
-
+      await repository.addPhoto(file);
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('アップロード完了')));
     }
