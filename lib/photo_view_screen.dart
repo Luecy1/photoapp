@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:photoapp/photo.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photoapp/providers.dart';
 
 class PhotoViewScreen extends StatefulWidget {
-  final Photo photo;
-  final List<Photo> photoList;
-
-  const PhotoViewScreen({
-    Key? key,
-    required this.photo,
-    required this.photoList,
-  }) : super(key: key);
-
   @override
   State<PhotoViewScreen> createState() => _PhotoViewScreenState();
 }
@@ -21,10 +13,8 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
   @override
   void initState() {
     super.initState();
-
-    final initialPage = widget.photoList.indexOf(widget.photo);
     _controller = PageController(
-      initialPage: initialPage,
+      initialPage: context.read(photoViewInitialIndexProvider),
     );
   }
 
@@ -35,15 +25,34 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
       appBar: AppBar(),
       body: Stack(
         children: [
-          PageView(
-            controller: _controller,
-            onPageChanged: (index) => {},
-            children: widget.photoList.map((photo) {
-              return Image.network(
-                photo.imageURL,
-                fit: BoxFit.cover,
+          Consumer(
+            builder: (context, watch, child) {
+              final asyncPhotoList = watch(photoListProvider);
+              return asyncPhotoList.when(
+                data: (photoList) {
+                  return PageView(
+                    controller: _controller,
+                    onPageChanged: (index) => {},
+                    children: photoList.map((photo) {
+                      return Image.network(
+                        photo.imageURL,
+                        fit: BoxFit.cover,
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
+                error: (e, stacktrace) {
+                  return Center(
+                    child: Text(e.toString()),
+                  );
+                },
               );
-            }).toList(),
+            },
           ),
           Align(
             alignment: Alignment.bottomCenter,
