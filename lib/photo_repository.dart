@@ -79,4 +79,12 @@ class PhotoRepository {
 
     Future.wait([task1, task2]);
   }
+
+  /// お気に入り状況を更新
+  Future<void> updatePhoto(Photo photo) async {
+    await FirebaseFirestore.instance
+        .collection('users/${_user.uid}/photos')
+        .doc(photo.id)
+        .update(_photoToMap(photo));
+  }
 }

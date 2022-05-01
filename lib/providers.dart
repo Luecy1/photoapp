@@ -19,6 +19,12 @@ final photoListProvider = StreamProvider.autoDispose((ref) {
       : photoRepository.getPhotoList();
 });
 
+final favoritePhotoListProvider = Provider.autoDispose((ref) {
+  return ref.watch(photoListProvider).whenData((data) {
+    return data.where((photo) => photo.isFavorite == true).toList();
+  });
+});
+
 final photoListIndexProvider = StateProvider.autoDispose((ref) {
   return 0;
 });

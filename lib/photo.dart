@@ -12,4 +12,13 @@ class Photo {
     required this.isFavorite,
     this.createdAt,
   });
+
+  Photo toggleIsFavorite() {
+    return Photo(
+      id: id,
+      imageURL: imageURL,
+      imagePath: imagePath,
+      isFavorite: !isFavorite,
+    );
+  }
 }

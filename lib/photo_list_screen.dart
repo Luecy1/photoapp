@@ -30,8 +30,6 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo App'),
@@ -53,6 +51,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
                   return PhotoGridView(
                     photoList: photoList,
                     onTap: (photo) => _onTapPhoto(photo, photoList),
+                    onTapFav: (photo) => _onTapFav(photo),
                   );
                 }),
                 loading: () {
@@ -68,14 +67,16 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
               );
             }),
           ),
+          // 「お気に入り」登録した画像を表示
           Consumer(
             builder: ((context, watch, child) {
-              final asyncPhotoList = watch(photoListProvider);
+              final asyncPhotoList = watch(favoritePhotoListProvider);
               return asyncPhotoList.when(
                 data: ((photoList) {
                   return PhotoGridView(
                     photoList: photoList,
                     onTap: (photo) => _onTapPhoto(photo, photoList),
+                    onTapFav: (photo) => _onTapFav(photo),
                   );
                 }),
                 loading: () {
@@ -163,6 +164,12 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           .showSnackBar(const SnackBar(content: Text('アップロード完了')));
     }
   }
+
+  Future<void> _onTapFav(Photo photo) async {
+    final photoRepository = context.read(photoRepositoryProvider);
+    final toggledPhoto = photo.toggleIsFavorite();
+    await photoRepository!.updatePhoto(toggledPhoto);
+  }
 }
 
 class PhotoGridView extends StatelessWidget {
@@ -170,10 +177,12 @@ class PhotoGridView extends StatelessWidget {
     Key? key,
     required this.photoList,
     required this.onTap,
+    required this.onTapFav,
   }) : super(key: key);
 
   final List<Photo> photoList;
   final void Function(Photo photo) onTap;
+  final void Function(Photo photo) onTapFav;
 
   @override
   Widget build(BuildContext context) {
@@ -199,9 +208,11 @@ class PhotoGridView extends StatelessWidget {
             Align(
               alignment: Alignment.topRight,
               child: IconButton(
-                onPressed: () => {},
-                color: Colors.white,
-                icon: const Icon(Icons.favorite_border),
+                onPressed: () => onTapFav(photo),
+                color: Colors.pinkAccent,
+                icon: photo.isFavorite
+                    ? const Icon(Icons.favorite)
+                    : const Icon(Icons.favorite_border),
               ),
             )
           ],
