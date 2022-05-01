@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photoapp/providers.dart';
+import 'package:share/share.dart';
 
 class PhotoViewScreen extends StatefulWidget {
   @override
@@ -72,7 +73,7 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   IconButton(
-                    onPressed: () => {},
+                    onPressed: () => _onTapShare(),
                     color: Colors.white,
                     icon: const Icon(Icons.share),
                   ),
@@ -104,5 +105,12 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.bounceInOut);
     }
+  }
+
+  Future<void> _onTapShare() async {
+    final photoList = context.read(photoListProvider).data!.value;
+    final photo = photoList[_controller.page!.toInt()];
+
+    await Share.share(photo.imageURL);
   }
 }
