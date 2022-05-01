@@ -68,4 +68,15 @@ class PhotoRepository {
           : Timestamp.fromDate(photo.createdAt!)
     };
   }
+
+  Future<void> deletePhoto(Photo photo) async {
+    final task1 = FirebaseFirestore.instance
+        .collection('users/${_user.uid}/photos')
+        .doc(photo.id)
+        .delete();
+    final task2 =
+        FirebaseStorage.instance.ref().child(photo.imagePath).delete();
+
+    Future.wait([task1, task2]);
+  }
 }

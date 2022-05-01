@@ -7,11 +7,16 @@ final userProvider = StreamProvider.autoDispose((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
-final photoListProvider = StreamProvider.autoDispose((ref) {
+final photoRepositoryProvider = Provider.autoDispose((ref) {
   final user = ref.watch(userProvider).data?.value;
-  return user == null
+  return user == null ? null : PhotoRepository(user);
+});
+
+final photoListProvider = StreamProvider.autoDispose((ref) {
+  final photoRepository = ref.watch(photoRepositoryProvider);
+  return photoRepository == null
       ? Stream.value(<Photo>[])
-      : PhotoRepository(user).getPhotoList();
+      : photoRepository.getPhotoList();
 });
 
 final photoListIndexProvider = StateProvider.autoDispose((ref) {
