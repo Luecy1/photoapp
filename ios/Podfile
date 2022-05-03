@@ -37,5 +37,12 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    # https://llcc.hatenablog.com/entry/2020/10/06/122027
+    target.build_configurations.each do |config|
+      if target.name.include?('Realm')
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      end
+    end
   end
 end
